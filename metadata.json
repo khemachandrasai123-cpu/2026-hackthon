@@ -1,0 +1,6 @@
+{
+  "name": "Living Family Mentor",
+  "description": "AI-powered private family knowledge platform preserving elder stories, memories, and advice into age-appropriate guided wisdom for children.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

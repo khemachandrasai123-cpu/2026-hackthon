@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Elder profiles
+    match /elderProfiles/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Child profiles
+    match /childProfiles/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Connections between child and elder
+    match /connections/{connectionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.childUid == request.auth.uid || 
+        resource.data.elderUid == request.auth.uid
+      );
+      allow create: if isAuthenticated() && request.resource.data.childUid == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        resource.data.childUid == request.auth.uid || 
+        resource.data.elderUid == request.auth.uid
+      );
+    }
+
+    // Memories
+    match /memories/{memoryId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && request.resource.data.elderUid == request.auth.uid;
+    }
+
+    // Media
+    match /media/{mediaId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && request.resource.data.elderUid == request.auth.uid;
+    }
+
+    // Knowledge chunks
+    match /knowledgeChunks/{chunkId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAuthenticated() && request.resource.data.elderUid == request.auth.uid;
+    }
+
+    // AI content
+    match /aiContent/{aiContentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Questions and Q&A interactions
+    match /questions/{questionId} {
+      allow read: if isAuthenticated() && (
+        resource.data.childUid == request.auth.uid || 
+        resource.data.elderUid == request.auth.uid
+      );
+      allow create: if isAuthenticated() && request.resource.data.childUid == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.childUid == request.auth.uid || 
+        resource.data.elderUid == request.auth.uid
+      );
+    }
+
+    // Saved content
+    match /savedContent/{id} {
+      allow read, write: if isAuthenticated() && (
+        (resource == null && request.resource.data.childUid == request.auth.uid) ||
+        (resource != null && resource.data.childUid == request.auth.uid)
+      );
+    }
+
+    // Modules
+    match /modules/{moduleId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // Activity log
+    match /activity/{activityId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+  }
+}
